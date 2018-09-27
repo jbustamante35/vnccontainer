@@ -1,0 +1,52 @@
+#!/bin/bash
+
+
+arg=${1}
+cmd=${2}
+ext="none"
+def="/usr/bin/hello.py"
+
+case $arg in
+1)
+	echo "Selecting MATLAB..."
+	lang="matlab"
+	ext=".m"
+	def="/usr/bin/hello.py"
+	;;
+
+2)
+	echo "Selecting R..."
+	lang="R"
+	ext=".R"
+	def="/usr/bin/hello.py"
+	;;
+
+3)
+	echo "Selecting Python..."
+	lang="python"
+	ext=".py"
+	def="/usr/bin/hello.py"
+	;;
+
+*)
+	echo "No language selected. Running command ${cmd}"
+	lang="none"
+	;;
+esac
+
+# Check file extension
+if [ -f $cmd ]; then
+	if [ "${ext}" == "none" ]; then	
+		$cmd	
+	else
+		echo "Running package with $lang"
+		$lang $cmd
+	fi
+elif [ $cmd == 0 ]; then
+	echo "Default language is ${lang}"
+	$lang $def
+
+else
+	echo "${cmd} not found"
+fi
+

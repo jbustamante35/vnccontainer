@@ -1,0 +1,196 @@
+#!/bin/bash
+#################################################################################
+# This is the wrapper script that serves as the ENTRYPOINT for the phytoshell
+# Docker image. It parses through command line arguments to determine the 
+# codebase and application to run, and which programming language with which 
+# the application. 
+# 
+# Usage:
+#       docker run -it phytoshell [verbosity] [codebase] [language_version_application] [additional arguments] 
+#
+# Input:
+#       verbosity: output for iRODS command to download codebase (0-none, 1-strong)
+#       codebase: CyVerse path to directory containing code and libraries for the application
+#                 [our codebase is /iplant/home/nmiller/phytoMorph_public_deploy]
+#       language_version_application: argument must be in this format (delimiter _)
+#               language -> m:matlab, r:R, p:python, o:octave, j:julia, b:debug_mode
+#               version -> o:original codebase (ours), a:alternate codebase (user-defined)
+#               application -> name of application to run
+#       additional arguments: any command line arguments to pass into the application
+# 
+# Pipeline Overview:
+#       1) Check input arguments for language, codebase, and application
+#       2) Set codebase directory  and configure language environment
+#       3) Re-configure argument order and Run command
+#
+# Authors
+#       Nathan Miller, Senior Scientist (ndmill@gmail.com) 
+#       Julian Bustamante, Graduate Researcher (jbustamante@wisc.edu)
+#################################################################################
+
+# Determine verbosity level and re-configure arguments
+# Verbosity level originally set to $1, but will be 
+# removed and subsequent arguments moved down by -1
+if [[ $# -eq 0 ]]; then
+        echo "No arguments selected"
+
+        str=$(configOSG.sh)
+        #echo $str
+
+        output=$( echo $str | cut -f 2 -d [ | cut -f 1 -d ] )
+        args=(${output//,/ })
+        for arg in "${!args[@]}"
+        do
+                echo "Argument $arg => ${args[arg]}"
+        done
+        exit 0
+fi
+
+verb=$1
+set -- "${@:2}"
+
+case $verb in
+0)
+        vlvl=" "
+        ;;
+
+1)
+        vlvl="-V"
+        ;;
+*)
+        vlvl="-V"
+        ;;
+esac
+
+# Check input arguments
+printf "**************************************************************\n"
+printf "* Phytomorph Docker image shell designed in 09/2018          *\n"
+printf "**************************************************************\n"
+printf "* Input Arguments are:                                       *\n"
+printf "* Code folder: ${1}\n"
+printf "* Lang_o-a_app: ${2}\n"
+printf "* Data: ${3}\n"
+printf "**************************************************************\n"
+
+# Parse through key_value hash to get language_application
+lang=$(echo $2 | cut -f 1 -d _)
+ver=$(echo $2 | cut -f 2 -d _)
+app=$(echo $2 | cut -f 3 -d _)
+
+printf "**************************************************************\n"
+printf "* Results from parsed argument Lang_o-a_app                  *\n"
+printf "* Lang: ${lang} \n"
+printf "* Ver: ${ver} \n"
+printf "* App: ${app}\n"
+printf "**************************************************************\n\n"
+
+# Get original and user's code folder from iRODS
+ofldr="/iplant/home/nmiller/phytoMorph_public_deploy"
+afldr=$1
+code_target_folder=/loadingdock/codebase
+printf "**************************************************************\n"
+printf "* Downloading original (phytomorph) codebase                 *\n"
+printf "* Source folder: ${ofldr} \n"
+startO=$SECONDS
+iget -r $vlvl $ofldr/matlab $code_target_folder/o
+iget -r $vlvl $ofldr/r $code_target_folder/o
+iget -r $vlvl $ofldr/python $code_target_folder/o
+iget -r $vlvl $ofldr/octave $code_target_folder/o
+iget -r $vlvl $ofldr/julia $code_target_folder/o
+runO=$(($SECONDS-$startO))
+printf "**************************************************************\n"
+printf "* ${runO} seconds to download original codebase\n"
+printf "**************************************************************\n\n"
+
+printf "**************************************************************\n"
+printf "* Downloading alternate codebase                             *\n"
+printf "* Source folder: ${afldr} \n"
+startA=$SECONDS
+iget -r $vlvl $afldr/matlab $code_target_folder/a
+iget -r $vlvl $afldr/r $code_target_folder/a
+iget -r $vlvl $afldr/python $code_target_folder/a
+iget -r $vlvl $afldr/octave $code_target_folder/a
+iget -r $vlvl $afldr/julia $code_target_folder/a
+runA=$(($SECONDS-$startA))
+printf "**************************************************************\n"
+printf "* ${runA} seconds to download alternate codebase\n"
+printf "**************************************************************\n"
+
+
+# Set codebase directory and configure language environment
+
+case $lang in
+m)
+        printf "**************************************************************\n"
+        printf "* MATLAB Codebase selected                                   *\n"
+        printf "**************************************************************\n"
+        cmd=$code_target_folder/$ver/matlab/DEwrapper
+        chmod +x $cmd
+        export LD_LIBRARY_PATH=/lib:/lib65:/usr/lib:/usr/local/lib:/usr/local/mcr/v93/runtime/glnxa64:/usr/local/mcr/v93/bin/glnxa64:/usr/local/mcr/v93/sys/os/glnxa64
+        export XAPPLRESDIR=/usr/local/mcr/v93/X11/app-defaults
+
+        ;;
+r)
+        printf "**************************************************************\n"
+        printf "* R Codebase selected                                        *\n"
+        printf "**************************************************************\n"
+        cmd="/yes/bin/Rscript $code_target_folder/$ver/r/DEwrapper.R"
+        ;;
+p)
+        printf "**************************************************************\n"
+        printf "* Python Codebase selected                                   *\n"
+        printf "**************************************************************\n"
+        cmd="python $code_target_folder/$ver/python/DEwrapper.py"
+        ;;
+
+o)
+        printf "**************************************************************\n"
+        printf "* Octave Codebase selected                                   *\n"
+        printf "**************************************************************\n"
+        cmd="octave $code_target_folder/$ver/octave/DEwrapper.m"
+        export DISPLAY=0.0
+        ;;
+
+j)
+        printf "**************************************************************\n"
+        printf "* Julia Codebase selected                                    *\n"
+        printf "**************************************************************\n"
+        cmd="julia $code_target_folder/$ver/julia/DEwrapper.jl"
+        ;;
+b)
+        printf "**************************************************************\n"
+        printf "* Debug mode selected                                        *\n"
+        printf "**************************************************************\n"
+        cmd=/bin/bash
+        ;;
+*)
+        echo "error: no command specified"
+        ;;
+esac
+
+# Reconfigure arguments and Run commands
+# Sets codebase directory ($1) to empty and sets application to $2
+printf "**************************************************************\n"
+echo -e "* Pre-arguments: ${@} \n"
+printf "**************************************************************\n"
+
+set -- "" $app "${@:3}"
+
+printf "**************************************************************\n"
+echo -e "* Post-arguments: ${@} \n"
+printf "**************************************************************\n"
+
+#
+
+printf "**************************************************************\n"
+echo -e "* Running Command: ${cmd} ${@} \n"
+printf "**************************************************************\n"
+
+startC=$SECONDS
+$cmd $@
+runC=$(($SECONDS-$startC))
+
+printf "**************************************************************\n"
+echo -e "* Ending Command: ${cmd} ${@} \n"
+printf "* ${runC} seconds to run command\n"
+printf "**************************************************************\n"

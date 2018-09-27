@@ -1,0 +1,49 @@
+#!/bin/bash
+#################################################################################
+# This is the wrapper script that serves as the ENTRYPOINT for the phytoshell
+# Docker image. It parses through command line arguments to determine the 
+# codebase and application to run, and which programming language with which 
+# the application. 
+# 
+# Usage:
+#       docker run -it phytoshell [verbosity] [codebase] [language_version_application] [additional arguments] 
+#
+# Input:
+#       verbosity: output for iRODS command to download codebase (0-none, 1-strong)
+#       codebase: CyVerse path to directory containing code and libraries for the application
+#                 [our codebase is /iplant/home/nmiller/phytoMorph_public_deploy]
+#       language_version_application: argument must be in this format (delimiter _)
+#               language -> m:matlab, r:R, p:python, o:octave, j:julia, b:debug_mode
+#               version -> o:original codebase (ours), a:alternate codebase (user-defined)
+#               application -> name of application to run
+#       additional arguments: any command line arguments to pass into the application
+# 
+# Pipeline Overview:
+#       1) Check input arguments for language, codebase, and application
+#       2) Set codebase directory  and configure language environment
+#       3) Re-configure argument order and Run command
+#
+# Authors
+#       Nathan Miller, Senior Scientist (ndmill@gmail.com) 
+#       Julian Bustamante, Graduate Researcher (jbustamante@wisc.edu)
+#################################################################################
+
+# Determine if arguments should be run from commandline [run from CyVerse]
+# or downloaded from config.json [run from OSG]
+if [[ $# -eq 0 ]]; then
+        echo "No arguments selected. Parsing arguments from config.json"
+
+        str=$(configOSG.sh)
+        output=$( echo $str | cut -f 2 -d [ | cut -f 1 -d ] )
+        args=(${output//,/ })
+
+        runner ${args[@]}
+        # Return data to user's iRODS server
+        ticketParser.sh /loadingdock/output_ticket.list iput
+
+else
+        # Running commandline arguments [for CyVerse]
+        runner $@
+
+fi
+

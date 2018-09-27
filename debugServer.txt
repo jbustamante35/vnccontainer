@@ -1,0 +1,65 @@
+# Set of commands to set up vncserver when you /bin/bash into this docker image
+# When docker container is running, just paste these commands into the
+# shell to set-up the environment and the vncserver
+#
+# Some applications to test:
+# firefox
+# /loadingdock/codebase/o/matlab/test_docker
+# xeyes
+# 
+# First export environment variables for MCR to work
+# Set up server with the windowed program to test
+# On the outside, use vncviewer to get into the server through the proper port
+# 	vncviewer localhost:5920
+
+
+export LD_LIBRARY_PATH=/lib:/lib65:/usr/lib:/usr/local/lib:/usr/local/mcr/v93/runtime/glnxa64:/usr/local/mcr/v93/bin/glnxa64:/usr/local/mcr/v93/sys/os/glnxa64
+
+export LD_LIBRARY_PATH=/lib:/lib65:/usr/lib:/usr/local/lib:/usr/local/mcr/v93/runtime/glnxa64:/usr/local/mcr/v93/bin/glnxa64:/usr/local/mcr/v93/sys/os/glnxa64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+
+export XAPPLRESDIR=/usr/local/mcr/v93/X11/app-defaults
+
+export DISPLAY=:20
+
+```
+Xvfb :20  -screen 0 1366x768x16 &
+x11vnc -passwd plant$ -display :20 -N -forever &
+firefox
+```
+
+
+chmod +x /loadingdock/codebase/o/matlab/test_docker
+cp /loadingdock/codebase/o/matlab/test_docker /bin/test_docker
+```
+Xvfb :20  -screen 0 1366x768x16 -reset -terminate &
+x11vnc -passwd plant$ localhost:20 -display :20 -N &
+octave --eval "run('GUI_1.m')"
+```
+
+################################################################
+## SSH into Docker Container via ssh-keys
+
+# As root 
+useradd -m test -p plants ;
+mkdir -p /home/test/.ssh ; 
+touch /home/test/.ssh/id_rsa ;
+chown -R test:test /home/test ;
+usermod -a -G sudo test ;
+vim /etc/ssh/sshd_config ;
+service ssh restart ;
+
+# Change password again as root
+passwd test
+plants
+
+# As test user
+su - test
+ssh-keygen -t rsa # password is plants also
+ssh-copy-id -i $HOME/.ssh/id_rsa.pub jbustamante@192.168.10.103 # might not need this
+
+# On client [might not need it]
+ssh-keygen -i rsa
+ssh-copy-id -i $HOME/.ssh/id_rsa.pub jbustamante@192.168.10.103
+ssh -Y -p 22 test@localhost
+
+

@@ -1,0 +1,79 @@
+# Download and install Matlab Compiler Runtime v8.4 (2014b)
+#
+# This docker file will configure an environment into which the Matlab compiler
+# runtime will be installed and in which stand-alone matlab routines (such as
+# those created with Matlab's deploytool) can be executed.
+#
+# See http://www.mathworks.com/products/compiler/mcr/ for more info.
+
+#FROM ubuntu:18.04
+FROM ubuntu:16.04
+RUN apt-get -qq update -y && apt-get -qq upgrade -y
+
+# Update packages and install basic utilities and iRODS dependencies
+RUN \
+	apt-get -qq install -y \
+	apt-utils bzip2 unzip wget xorg tzdata curl \
+    libnspr4 libnss3 libnss3-nssdb libnss3-tools libjpeg62 libasound2 \
+	libfuse2 libssl1.0.0 libgconf-2-4 ;
+
+# Install iRODS commands
+RUN \
+	curl ftp://ftp.renci.org/pub/irods/releases/4.1.11/ubuntu14/irods-icommands-4.1.11-ubuntu14-x86_64.deb -o irods-icommands.deb ; \
+	dpkg -i irods-icommands.deb ;
+
+# Install MATLAB 2017b MCR
+RUN \
+	mkdir /mcr-install ; \
+	curl ssd.mathworks.com/supportfiles/downloads/R2017b/deployment_files/R2017b/installers/glnxa64/MCR_R2017b_glnxa64_installer.zip -o mcr2017b.zip ; \
+	unzip -q mcr2017b.zip -d /mcr-install ; \	
+	/mcr-install/install -destinationFolder /usr/local/mcr -agreeToLicense yes -mode silent ;
+
+# Install anaconda to run python2.7/3.7 with dependencies
+RUN \
+	curl https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh -o anaconda3.sh && \
+	yes "yes" | bash anaconda3.sh && \
+	bash ~/.bashrc ;
+
+# Install R from Anaconda
+ADD installRfromConda.sh /
+RUN \
+	chmod +x installRfromConda.sh && \
+        ./installRfromConda.sh ;
+
+# Install Julia
+RUN \
+        curl https://julialang-s3.julialang.org/bin/linux/x64/1.0/julia-1.0.0-linux-x86_64.tar.gz -o julia.tar.gz ; \
+        tar -xzf julia.tar.gz -C /usr/local/ ; \
+        ln -s /usr/local/julia-1.0.0/bin/julia /usr/local/bin/julia ;
+
+# Install Octave
+RUN apt-get -qq install -y octave ;
+
+# Delete installation files
+RUN rm -rf irods-icommands.deb mcr2017b.zip /mcr-install anaconda3.sh installRfromConda.sh ;
+
+# Set environmental variables for MCR
+RUN mkdir /cvmfs /de-app-work ;
+
+# [need to fix this so it keeps default library paths too]
+#ENV LD_LIBRARY_PATH /usr/local/mc/v93/runtime/glnxa64:/usr/local/mcr/v93/bin/glnxa64:/usr/local/mcr/v93/sys/os/glnxa64
+#ENV LD_LIBRARY_PATH /lib:/lib65:/usr/lib:/usr/local/lib:/usr/local/mcr/v93/runtime/glnxa64:/usr/local/mcr/v93/bin/glnxa64:/usr/local/mcr/v93/sys/os/glnxa64
+#ENV XAPPLRESDIR /usr/local/mcr/v93/X11/app-defaults
+
+# Add wrapper, config, and test scripts
+ADD eSFRdefaultColorReference.mat /usr/bin/
+ADD eSFRdefaultGrayReference.mat /usr/bin/
+ADD irods_environment.json /root/.irods/
+ADD wrapper /usr/bin/
+ADD langtest/ /usr/local/langtest
+RUN chmod +x /usr/bin/wrapper
+RUN mkdir -p /codebase/o
+RUN mkdir -p /codebase/a
+
+# Unit tests
+RUN mkdir -p /sampleimages/maizeseedling/
+ADD {Plot_2435}{Experiment_80}{Planted_3-4-2018}{SeedSource_16B-7567-7}{SeedYear_2016}{Genotype_CML069}{Treatment_Control}{PictureDay_16}.nef /sampleimages/maizeseedling/
+
+# ENTRYPOINT
+ENTRYPOINT ["/usr/bin/wrapper"]

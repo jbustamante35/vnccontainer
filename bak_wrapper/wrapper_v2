@@ -1,0 +1,11 @@
+#!/bin/bash
+# Write some documentation here
+# our $fldr is cEeGaMVXYR4OHBV /iplant/home/nmiller/phytoMorph_public_deploy
+
+fldr=$1
+#iget -r -V -t $fldr ~
+
+# parse through command
+lang=$(echo $2 | cut -f 1 -d _)
+
+echo "${fldr} ${lang}"
