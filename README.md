@@ -2,8 +2,29 @@
 Docker image configuration files to test out running GUIs from docker containers. 
 
 ## Installation
+A)  Download un-compiled docker image from GitHub
+  1) Clone this repository into desired folder <br />
+    ```
+    $ git clone https://github.com/jbustamante35/vnccontainer
+    ```
+  2) Build docker image <br />
+    ```
+    $ docker build -t [name-for-image] /path/to/Dockerfile
+    ```
+  3) Run docker image <br />
+    ```
+    $ docker run --privileged -p 22:22 -it [name-for-image] [verobisty] [codebase] [application-instructions (see Usage)]
+    ```
 
-
+B) Pull pre-compiled docker image from DockerHub
+  1) Pull repository from DockerHub with main tag <br />
+    ```
+    $ docker pull jbustamante35/vnccontainer:main
+    ```
+  2) Run docker image <br />
+    ```
+    $ docker run --privileged -p 22:22 -it [name-for-image] [verobisty] [codebase] [application-instructions (see Usage)]
+    ```
 
 ## Usage
 To configure the docker container's server from inside the container, follow these instructions. 
@@ -67,15 +88,19 @@ $ service ssh restart
 ```
 
 ### FROM CLIENT
-### Setup config file in ~/.ssh/config
-Host dok
-    HostName localhost
-    Port 22
-    User root
-    ForwardX11 yes
-    SendEnv LANG LC_*
-    HashKnownHosts yes
-    GSSAPIAuthentication yes
+### Setup ssh config file 
+---
+**Configure ~/.ssh/config**
+Host dok <br />
+    HostName localhost <br />
+    Port 22 <br />
+    User root <br />
+    ForwardX11 yes <br />
+    SendEnv LANG LC_* <br />
+    HashKnownHosts yes <br />
+    GSSAPIAuthentication yes <br />
+
+---
 
 ### SSH into root localhost with X11 forwarding
 ```
@@ -103,7 +128,5 @@ $ cd /loadingdock/o/codebase/matlab
 ```
 $ ./iPlant_ver0
 ```
-
-
 
 
