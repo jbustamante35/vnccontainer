@@ -33,9 +33,9 @@ This enables us to use a MATLAB GUI via ssh with X11 forwarding enabled.
 
 ### FROM CLIENT
 #### Start docker container [ image: vnccontainer | tag: main ]
-Open Port 22 and run --priviledged option
+Open Port 22 and run --privileged option
 ```
-$ docker run --priviledged -p 22:22 -it main 0 na b__
+$ docker run --privileged -p 22:22 -it main 0 na b__
 ```
 
 ### INSIDE DOCKER CONTAINER
@@ -44,11 +44,11 @@ $ docker run --priviledged -p 22:22 -it main 0 na b__
 ---
 **Julian's Login Information**
 
-  Host Name (DNS): data.cyverse.org <br />
-  Port Number: 1247 <br />
-  User Name: jbustamante35 <br />
-  iRODS Zone: iplant <br />
-  Password: [ *hint*: my laptop's password ] <br />
+  **Host Name (DNS):** data.cyverse.org <br />
+  **Port Number:** 1247 <br />
+  **User Name:** jbustamante35 <br />
+  **iRODS Zone:** iplant <br />
+  **Password:** [ *hint*: my laptop's password ] <br />
 
 ---
 
@@ -91,6 +91,7 @@ $ service ssh restart
 ### Setup ssh config file 
 ---
 **Configure ~/.ssh/config**
+
 Host dok <br />
     HostName localhost <br />
     Port 22 <br />
