@@ -182,6 +182,7 @@ RUN \
     #echo "$NVIDIA_GPGKEY_SUM  cudasign.pub" | sha256sum -c --strict - && rm cudasign.pub && \
     echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/cuda.list
 
+## Replace all version 8.0.61 with version 10.0.130
 #ENV CUDA_VERSION 8.0.61
 ENV CUDA_VERSION 10.0.130
 
@@ -216,3 +217,8 @@ ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 ENV NVIDIA_REQUIRE_CUDA "cuda>=8.0"
+
+# downgrade icommands 
+ADD irods-icommands-4.1.9-cv-64bit-ubuntu-14.deb /
+RUN dpkg -i /irods-icommands-4.1.9-cv-64bit-ubuntu-14.deb ;
+
