@@ -11,49 +11,53 @@ There is currently no implementation to do this from the Dockerfile.
 This enables us to use a MATLAB GUI via ssh with X11 forwarding enabled.
 
 ### FROM CLIENT
-#### Start docker container ['vnccontainer' image, 'main' tag]
+#### Start docker container [ image: vnccontainer | tag: main ]
 Open Port 22 and run --priviledged option
 ```
 $ docker run --priviledged -p 22:22 -it main 0 na b__
 ```
 
 ### INSIDE DOCKER CONTAINER
-#### Mount data from iRODS using FUSE [use icommands 4.1.9 or 4.2.*]
+#### Mount data from iRODS using FUSE [ use icommands 4.1.9 or 4.2.* ]
 ##### Enter CyVerse login information and path to data folder
 ---
 **Julian's Login Information**
 
-  Host Name (DNS): data.cyverse.org
-  Port Number: 1247
-  User Name: jbustamante35
-  iRODS Zone: iplant
-  Password: [your password for this laptop]
+  Host Name (DNS): data.cyverse.org <br />
+  Port Number: 1247 <br />
+  User Name: jbustamante35 <br />
+  iRODS Zone: iplant <br />
+  Password: [ *hint*: my laptop's password ] <br />
 
 ---
 
-
 ```
-cd ~/.irods
-rm irods_environment.json
-iinit
-mkdir ~/data_home
-irodsFs -o allow_other $HOME/data_home
+$ cd ~/.irods
+$ rm irods_environment.json
+$ iinit
+$ mkdir ~/data_home
+$ irodsFs -o allow_other $HOME/data_home
 
 ### Make GUI files executable
-chmod +x /loadingdock/codebase/o/matlab/iPlant_ver0
+$ chmod +x /loadingdock/codebase/o/matlab/iPlant_ver0
 ```
 
-### Configure /etc/ssh/sshd_config file in docker container
-Port 22
-ChallengeResponseAuthentication no
-UsePAM yes
-PermitRootLogin yes
-AllowAgentForwarding yes
-X11Forwarding yes
-X11UseLocalhost no
-PrintMotd no
-AcceptEnv LANG LC_*
-Subsystem       sftp    /usr/lib/openssh/sftp-server
+### Configure sshd config file in docker container
+---
+**Configure /etc/ssh/sshd_config**
+
+Port 22 <br />
+ChallengeResponseAuthentication no <br />
+UsePAM yes <br />
+PermitRootLogin yes <br />
+AllowAgentForwarding yes <br />
+X11Forwarding yes <br />
+X11UseLocalhost no <br />
+PrintMotd no <br />
+AcceptEnv LANG LC_* <br />
+Subsystem       sftp    /usr/lib/openssh/sftp-server <br />
+
+---
 
 ### Set password and restart ssh daemon
 #### Password is usually just 'plant'
@@ -77,7 +81,7 @@ Host dok
 ```
 $ ssh dok
 ```
-Or do manually
+Or run with manual options 
 ```
 $ ssh -Y root@localhost
 ```
@@ -85,7 +89,6 @@ $ ssh -Y root@localhost
 ### Export proper library path for MCR
 ```
 $ export LD_LIBRARY_PATH=/lib:/lib65:/usr/lib:/usr/local/lib:/usr/local/mcr/v93/runtime/glnxa64:/usr/local/mcr/v93/bin/glnxa64:/usr/local/mcr/v93/sys/os/glnxa64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
-
 $ export XAPPLRESDIR=/usr/local/mcr/v93/X11/app-defaults
 ```
 
