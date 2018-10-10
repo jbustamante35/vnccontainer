@@ -33,8 +33,8 @@ set -- "${@:2}"
 
 case $verb in
 0)
-    vlvl=" "
-    ;;
+	vlvl=" "
+	;;
 
 1)
     vlvl="-V"
@@ -48,7 +48,6 @@ case $verb in
 
     vlvl=" "
     ;;
-        
 *)
     vlvl="-V"
     ;;
@@ -83,6 +82,7 @@ code_target_folder=/loadingdock/codebase
 printf "**************************************************************\n"
 printf "* Downloading original (phytomorph) codebase                 *\n"
 printf "* Source folder: ${ofldr} \n"
+
 startO=$SECONDS
 iget -r $vlvl $ofldr/matlab $code_target_folder/o
 iget -r $vlvl $ofldr/r $code_target_folder/o
@@ -90,6 +90,7 @@ iget -r $vlvl $ofldr/python $code_target_folder/o
 iget -r $vlvl $ofldr/octave $code_target_folder/o
 iget -r $vlvl $ofldr/julia $code_target_folder/o
 runO=$(($SECONDS-$startO))
+
 printf "**************************************************************\n"
 printf "* ${runO} seconds to download original codebase\n"
 printf "**************************************************************\n\n"
@@ -98,6 +99,7 @@ printf "**************************************************************\n"
 printf "* Downloading alternate codebase                             *\n"
 printf "* Source folder: ${afldr} \n"
 startA=$SECONDS
+
 case $afldr in
 na)
     ;;
@@ -110,6 +112,7 @@ na)
     iget -r $vlvl $afldr/julia $code_target_folder/a
     ;;
 esac
+
 runA=$(($SECONDS-$startA))
 printf "**************************************************************\n"
 printf "* ${runA} seconds to download alternate codebase\n"
@@ -120,51 +123,62 @@ printf "**************************************************************\n"
 
 case $lang in
 m)
-        printf "**************************************************************\n"
-        printf "* MATLAB Codebase selected                                   *\n"
-        printf "**************************************************************\n"
-        cmd=$code_target_folder/$ver/matlab/DEwrapper
-        chmod +x $cmd
-        export LD_LIBRARY_PATH=/lib:/lib65:/usr/lib:/usr/local/lib:/usr/local/mcr/v93/runtime/glnxa64:/usr/local/mcr/v93/bin/glnxa64:/usr/local/mcr/v93/sys/os/glnxa64
-        export XAPPLRESDIR=/usr/local/mcr/v93/X11/app-defaults
-
-        ;;
+    printf "**************************************************************\n"
+    printf "* MATLAB Codebase selected                                   *\n"
+    printf "**************************************************************\n"
+    cmd=$code_target_folder/$ver/matlab/DEwrapper
+    chmod +x $cmd
+    export LD_LIBRARY_PATH=/lib:/lib65:/usr/lib:/usr/local/lib:/usr/local/mcr/v93/runtime/glnxa64:/usr/local/mcr/v93/bin/glnxa64:/usr/local/mcr/v93/sys/os/glnxa64
+    export XAPPLRESDIR=/usr/local/mcr/v93/X11/app-defaults
+	;;
 r)
-        printf "**************************************************************\n"
-        printf "* R Codebase selected                                        *\n"
-        printf "**************************************************************\n"
-        cmd="/yes/bin/Rscript $code_target_folder/$ver/r/DEwrapper.R"
-        ;;
+	printf "**************************************************************\n"
+	printf "* R Codebase selected                                        *\n"
+	printf "**************************************************************\n"
+	cmd="/yes/bin/Rscript $code_target_folder/$ver/r/DEwrapper.R"
+	;;
 p)
-        printf "**************************************************************\n"
-        printf "* Python Codebase selected                                   *\n"
-        printf "**************************************************************\n"
-        cmd="python $code_target_folder/$ver/python/DEwrapper.py"
-        ;;
+	printf "**************************************************************\n"
+	printf "* Python Codebase selected                                   *\n"
+	printf "**************************************************************\n"
+	cmd="python $code_target_folder/$ver/python/DEwrapper.py"
+	;;
+p2)
+	printf "**************************************************************\n"
+	printf "* Python2 Codebase selected                                   *\n"
+	printf "**************************************************************\n"
+	cmd="python2 $code_target_folder/$ver/python/DEwrapper.py"
+	;;
+p3)
+	printf "**************************************************************\n"
+	printf "* Python3 Codebase selected                                   *\n"
+	printf "**************************************************************\n"
+	cmd="python3 $code_target_folder/$ver/python/DEwrapper.py"
+	;;
 
 o)
-        printf "**************************************************************\n"
-        printf "* Octave Codebase selected                                   *\n"
-        printf "**************************************************************\n"
-        cmd="octave $code_target_folder/$ver/octave/DEwrapper.m"
-        export DISPLAY=:0
-        ;;
+	printf "**************************************************************\n"
+	printf "* Octave Codebase selected                                   *\n"
+	printf "**************************************************************\n"
+	cmd="octave $code_target_folder/$ver/octave/DEwrapper.m"
+	export DISPLAY=:0
+	;;
 
 j)
-        printf "**************************************************************\n"
-        printf "* Julia Codebase selected                                    *\n"
-        printf "**************************************************************\n"
-        cmd="julia $code_target_folder/$ver/julia/DEwrapper.jl"
-        ;;
+	printf "**************************************************************\n"
+	printf "* Julia Codebase selected                                    *\n"
+	printf "**************************************************************\n"
+	cmd="julia $code_target_folder/$ver/julia/DEwrapper.jl"
+	;;
 b)
-        printf "**************************************************************\n"
-        printf "* Debug mode selected                                        *\n"
-        printf "**************************************************************\n"
-        cmd=/bin/bash
-        ;;
+	printf "**************************************************************\n"
+	printf "* Debug mode selected                                        *\n"
+	printf "**************************************************************\n"
+	cmd=/bin/bash
+	;;
 *)
-        echo "error: no command specified"
-        ;;
+	echo "error: no command specified"
+	;;
 esac
 
 # Reconfigure arguments and Run commands

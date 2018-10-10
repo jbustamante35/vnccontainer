@@ -167,58 +167,60 @@ ADD config.json /loadingdock
 ENTRYPOINT ["/usr/bin/wrapper"]
 
 
-RUN \
-    curl http://archive.ubuntu.com/ubuntu/pool/universe/g/gnupg/gnupg-curl_1.4.20-1ubuntu3_amd64.deb -o gnupg-curl.deb ; \
-    dpkg -i gnupg-curl.deb ; \
-    apt-get -qq install -y vim less sudo locate mlocate ;
-
-RUN \ 
-    apt-get -qq install -y --no-install-recommends ca-certificates apt-transport-https && \
-    rm -rf /var/lib/apt/lists/* && \
-    NVIDIA_GPGKEY_SUM=d1be581509378368edeec8c1eb2958702feedf3bc3d17011adbf24efacce4ab5 && \
-    NVIDIA_GPGKEY_FPR=ae09fe4bbd223a84b2ccfce3f60f4b3d7fa2af80 && \
-    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub && \
-    apt-key adv --export --no-emit-version -a $NVIDIA_GPGKEY_FPR | tail -n +5 > cudasign.pub && \
-    #echo "$NVIDIA_GPGKEY_SUM  cudasign.pub" | sha256sum -c --strict - && rm cudasign.pub && \
-    echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/cuda.list
-
-## Replace all version 8.0.61 with version 10.0.130
-#ENV CUDA_VERSION 8.0.61
-ENV CUDA_VERSION 10.0.130
-
-#ENV CUDA_PKG_VERSION 8-0=$CUDA_VERSION-1
-ENV CUDA_PKG_VERSION 10-0=$CUDA_VERSION-1
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        cuda-nvrtc-$CUDA_PKG_VERSION \
-        cuda-nvgraph-$CUDA_PKG_VERSION \
-        cuda-cusolver-$CUDA_PKG_VERSION \
-        #cuda-cublas-8-0=8.0.61.2-1 \
-        cuda-cublas-10-0=10.0.130-1 \
-        cuda-cufft-$CUDA_PKG_VERSION \
-        cuda-curand-$CUDA_PKG_VERSION \
-        cuda-cusparse-$CUDA_PKG_VERSION \
-        cuda-npp-$CUDA_PKG_VERSION \
-        cuda-cudart-$CUDA_PKG_VERSION && \
-    #ln -s cuda-8.0 /usr/local/cuda && \
-    ln -s cuda-10.0 /usr/local/cuda && \
-    rm -rf /var/lib/apt/lists/*
-
-# nvidia-docker 1.0
-LABEL com.nvidia.volumes.needed="nvidia_driver"
-LABEL com.nvidia.cuda.version="${CUDA_VERSION}"
-
-RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
-    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
-
-ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
-
-# nvidia-container-runtime
-ENV NVIDIA_VISIBLE_DEVICES all
-ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
-ENV NVIDIA_REQUIRE_CUDA "cuda>=8.0"
+# Install NVIDIA libraries
+#RUN \
+#    curl http://archive.ubuntu.com/ubuntu/pool/universe/g/gnupg/gnupg-curl_1.4.20-1ubuntu3_amd64.deb -o gnupg-curl.deb ; \
+#    dpkg -i gnupg-curl.deb ; \
+#    apt-get -qq install -y vim less sudo locate mlocate ;
+#
+#RUN \ 
+#    apt-get -qq install -y --no-install-recommends ca-certificates apt-transport-https && \
+#    rm -rf /var/lib/apt/lists/* && \
+#    NVIDIA_GPGKEY_SUM=d1be581509378368edeec8c1eb2958702feedf3bc3d17011adbf24efacce4ab5 && \
+#    NVIDIA_GPGKEY_FPR=ae09fe4bbd223a84b2ccfce3f60f4b3d7fa2af80 && \
+#    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub && \
+#    apt-key adv --export --no-emit-version -a $NVIDIA_GPGKEY_FPR | tail -n +5 > cudasign.pub && \
+#    #echo "$NVIDIA_GPGKEY_SUM  cudasign.pub" | sha256sum -c --strict - && rm cudasign.pub && \
+#    echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/cuda.list
+#
+### Replace all version 8.0.61 with version 10.0.130
+##ENV CUDA_VERSION 8.0.61
+#ENV CUDA_VERSION 10.0.130
+#
+##ENV CUDA_PKG_VERSION 8-0=$CUDA_VERSION-1
+#ENV CUDA_PKG_VERSION 10-0=$CUDA_VERSION-1
+#RUN apt-get update && apt-get install -y --no-install-recommends \
+#    cuda-nvrtc-$CUDA_PKG_VERSION \
+#    cuda-nvgraph-$CUDA_PKG_VERSION \
+#    cuda-cusolver-$CUDA_PKG_VERSION \
+#    #cuda-cublas-8-0=8.0.61.2-1 \
+#    cuda-cublas-10-0=10.0.130-1 \
+#    cuda-cufft-$CUDA_PKG_VERSION \
+#    cuda-curand-$CUDA_PKG_VERSION \
+#    cuda-cusparse-$CUDA_PKG_VERSION \
+#    cuda-npp-$CUDA_PKG_VERSION \
+#    cuda-cudart-$CUDA_PKG_VERSION && \
+#    #ln -s cuda-8.0 /usr/local/cuda && \
+#    ln -s cuda-10.0 /usr/local/cuda && \
+#    rm -rf /var/lib/apt/lists/*
+#
+## nvidia-docker 1.0
+#LABEL com.nvidia.volumes.needed="nvidia_driver"
+#LABEL com.nvidia.cuda.version="${CUDA_VERSION}"
+#
+#RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
+#    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
+#
+#ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
+#ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
+#
+## nvidia-container-runtime
+#ENV NVIDIA_VISIBLE_DEVICES all
+#ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+#ENV NVIDIA_REQUIRE_CUDA "cuda>=8.0"
 
 # downgrade icommands 
 ADD irods-icommands-4.1.9-cv-64bit-ubuntu-14.deb /
 RUN dpkg -i /irods-icommands-4.1.9-cv-64bit-ubuntu-14.deb ;
 
+#  
