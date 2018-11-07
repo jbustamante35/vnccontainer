@@ -59,40 +59,41 @@ RUN apt-get -qq update -y && apt-get -qq upgrade -y
 
 # Update packages and install basic utilities and iRODS dependencies
 RUN \
-	apt-get -qq install -y \
-	apt-utils bzip2 unzip wget xorg tzdata curl \
+    apt-get -qq install -y \
+    apt-utils bzip2 unzip wget xorg tzdata curl \
     libnspr4 libnss3 libnss3-dev libnss3-tools libjpeg62 libasound2 \
-	libfuse2 libssl1.0.0 libgconf-2-4 ;
+    libfuse2 libssl1.0.0 libgconf-2-4 ;
 
 # Install iRODS commands
 RUN \
-	curl ftp://ftp.renci.org/pub/irods/releases/4.1.11/ubuntu14/irods-icommands-4.1.11-ubuntu14-x86_64.deb -o irods-icommands.deb ; \
-	dpkg -i irods-icommands.deb ;
+    #curl ftp://ftp.renci.org/pub/irods/releases/4.1.11/ubuntu14/irods-icommands-4.1.11-ubuntu14-x86_64.deb -o irods-icommands.deb ; \
+    curl ftp://ftp.renci.org/pub/irods/releases/4.1.9/ubuntu14/irods-icommands-4.1.9-ubuntu14-x86_64.deb -o irods-icommands.deb ; \
+    dpkg -i irods-icommands.deb ;
 
 # Install MATLAB 2017b MCR
 RUN \
-	mkdir /mcr-install /cvmfs /de-app-work ; \
-	curl ssd.mathworks.com/supportfiles/downloads/R2017b/deployment_files/R2017b/installers/glnxa64/MCR_R2017b_glnxa64_installer.zip -o mcr2017b.zip ; \
-	unzip -q mcr2017b.zip -d /mcr-install ; \	
-	/mcr-install/install -destinationFolder /usr/local/mcr -agreeToLicense yes -mode silent ;
-
+    mkdir /mcr-install /cvmfs /de-app-work ; \
+    curl ssd.mathworks.com/supportfiles/downloads/R2017b/deployment_files/R2017b/installers/glnxa64/MCR_R2017b_glnxa64_installer.zip -o mcr2017b.zip ; \
+    unzip -q mcr2017b.zip -d /mcr-install ; \	
+    /mcr-install/install -destinationFolder /usr/local/mcr -agreeToLicense yes -mode silent ;
+    
 # Install anaconda to run python2.7/3.7 with dependencies
 RUN \
-	curl https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh -o anaconda3.sh && \ 
+    curl https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh -o anaconda3.sh && \ 
     yes "yes" | bash anaconda3.sh && \
-	bash ~/.bashrc ;
+    bash ~/.bashrc ;
 
 # Install R from Anaconda
 ADD installRfromConda.sh /
 RUN \
-	chmod +x installRfromConda.sh && \
-        ./installRfromConda.sh ;
+    chmod +x installRfromConda.sh && \
+    ./installRfromConda.sh ;
 
 # Install Julia
 RUN \
-        curl https://julialang-s3.julialang.org/bin/linux/x64/1.0/julia-1.0.0-linux-x86_64.tar.gz -o julia.tar.gz ; \
-        tar -xzf julia.tar.gz -C /usr/local/ ; \
-        ln -s /usr/local/julia-1.0.0/bin/julia /usr/local/bin/julia ;
+    curl https://julialang-s3.julialang.org/bin/linux/x64/1.0/julia-1.0.0-linux-x86_64.tar.gz -o julia.tar.gz ; \
+    tar -xzf julia.tar.gz -C /usr/local/ ; \
+    ln -s /usr/local/julia-1.0.0/bin/julia /usr/local/bin/julia ;
 
 # Install Octave
 RUN apt-get -qq install -y octave ;
@@ -106,11 +107,8 @@ RUN \
     python-pip python3-pip \ 
     xvfb python3-pytest x11vnc git firefox ; \
     pip install --upgrade pip ; 
-
-#ENV DISPLAY :20
 ENV DISPLAY :0
 EXPOSE 22
-#EXPOSE 5920
 
 RUN \
     mkdir ~/.vnc ; \
